@@ -5,8 +5,11 @@ import DecisionForm from "@/components/DecisionForm";
 import { findConflictingIds } from "@/lib/conflicts";
 import type { Delivery } from "@/lib/types";
 
+// Format using local date components, not toISOString() (which converts to
+// UTC and shifts the date by a day in timezones ahead of UTC, e.g. KST).
 function dateOnly(d: Date) {
-  return d.toISOString().slice(0, 10);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 
 function addDays(dateStr: string, n: number) {
