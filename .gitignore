@@ -35,9 +35,7 @@ yarn-error.log*
 !.env.local.example
 
 # local notes that may contain credentials — never commit these
-*pw*.txt
-*password*.txt
-*secret*.txt
+*.txt
 
 # vercel
 .vercel

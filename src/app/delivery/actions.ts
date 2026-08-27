@@ -14,10 +14,13 @@ export async function createDelivery(formData: FormData) {
 
   const assemblyCompanyId = String(formData.get("assembly_company_id") || "");
   const requestedAt = String(formData.get("requested_at") || "");
+  const lotNo = String(formData.get("lot_no") || "").trim();
+  const woNo = String(formData.get("wo_no") || "").trim();
+  const contactPhone = String(formData.get("contact_phone") || "").trim() || null;
   const note = String(formData.get("note") || "").trim() || null;
 
-  if (!assemblyCompanyId || !requestedAt) {
-    throw new Error("assembly 회사와 도착 예정 시간을 입력해주세요.");
+  if (!assemblyCompanyId || !requestedAt || !lotNo || !woNo) {
+    throw new Error("assembly 회사, 도착 예정 시간, LOT, W/O를 입력해주세요.");
   }
 
   const { data: delivery, error } = await supabase
@@ -25,6 +28,9 @@ export async function createDelivery(formData: FormData) {
     .insert({
       assembly_company_id: assemblyCompanyId,
       requested_at: new Date(requestedAt).toISOString(),
+      lot_no: lotNo,
+      wo_no: woNo,
+      contact_phone: contactPhone,
       note,
     })
     .select()
@@ -46,6 +52,7 @@ export async function createDelivery(formData: FormData) {
         "[납품예약] 새 납품 예약이 등록되었습니다",
         `<p><b>${myProfile?.company_name ?? "납품 업체"}</b>에서 새 납품 예약을 등록했습니다.</p>
          <p>예상 도착 시간: ${new Date(delivery.requested_at).toLocaleString("ko-KR")}</p>
+         <p>LOT: ${lotNo} / W/O: ${woNo}</p>
          <p>대시보드에서 확인 후 승인/반려해주세요.</p>`,
       );
     }
@@ -65,14 +72,22 @@ export async function resubmitDelivery(formData: FormData) {
 
   const id = String(formData.get("id") || "");
   const requestedAt = String(formData.get("requested_at") || "");
+  const lotNo = String(formData.get("lot_no") || "").trim();
+  const woNo = String(formData.get("wo_no") || "").trim();
+  const contactPhone = String(formData.get("contact_phone") || "").trim() || null;
   const note = String(formData.get("note") || "").trim() || null;
 
-  if (!id || !requestedAt) throw new Error("도착 예정 시간을 입력해주세요.");
+  if (!id || !requestedAt || !lotNo || !woNo) {
+    throw new Error("도착 예정 시간, LOT, W/O를 입력해주세요.");
+  }
 
   const { error } = await supabase
     .from("deliveries")
     .update({
       requested_at: new Date(requestedAt).toISOString(),
+      lot_no: lotNo,
+      wo_no: woNo,
+      contact_phone: contactPhone,
       note,
     })
     .eq("id", id);

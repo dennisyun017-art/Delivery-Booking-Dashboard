@@ -16,6 +16,9 @@ export interface Delivery {
   delivery_company_id: string;
   assembly_company_id: string;
   requested_at: string;
+  lot_no: string;
+  wo_no: string;
+  contact_phone: string | null;
   note: string | null;
   status: DeliveryStatus;
   reject_reason: string | null;

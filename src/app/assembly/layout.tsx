@@ -22,13 +22,14 @@ export default async function AssemblyLayout({
   if (profile?.role !== "assembly") redirect("/delivery");
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       <Nav
         companyName={profile.company_name}
         roleLabel="Assembly BP사"
         links={[{ href: "/assembly/settings", label: "설정" }]}
+        maxWidthClassName="max-w-5xl"
       />
-      <div className="mx-auto max-w-2xl px-4 py-6">{children}</div>
+      <div className="mx-auto max-w-5xl px-4 py-6">{children}</div>
     </div>
   );
 }

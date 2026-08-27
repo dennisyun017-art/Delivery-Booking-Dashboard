@@ -15,7 +15,7 @@ export default async function AssemblySettingsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h2 className="text-lg font-semibold">설정</h2>
+      <h2 className="text-lg font-semibold text-slate-800">설정</h2>
       <SettingsForm defaultMinutes={profile?.conflict_buffer_minutes ?? 15} />
     </div>
   );

@@ -21,12 +21,15 @@ export default function ResubmitForm({ delivery }: { delivery: Delivery }) {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="mt-2 text-sm font-medium text-black underline"
+        className="mt-2 text-sm font-medium text-[#2563EB] no-underline hover:underline"
       >
         시간 재입력
       </button>
     );
   }
+
+  const inputClass =
+    "rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15";
 
   return (
     <form
@@ -50,26 +53,49 @@ export default function ResubmitForm({ delivery }: { delivery: Delivery }) {
         type="datetime-local"
         required
         defaultValue={toLocalInputValue(delivery.requested_at)}
-        className="rounded-md border px-3 py-2 text-sm"
+        className={inputClass}
+      />
+      <div className="grid grid-cols-2 gap-2">
+        <input
+          name="lot_no"
+          required
+          defaultValue={delivery.lot_no}
+          placeholder="LOT No."
+          className={inputClass}
+        />
+        <input
+          name="wo_no"
+          required
+          defaultValue={delivery.wo_no}
+          placeholder="W/O No."
+          className={inputClass}
+        />
+      </div>
+      <input
+        name="contact_phone"
+        type="tel"
+        defaultValue={delivery.contact_phone ?? ""}
+        placeholder="연락처 (선택)"
+        className={inputClass}
       />
       <input
         name="note"
         defaultValue={delivery.note ?? ""}
         placeholder="비고"
-        className="rounded-md border px-3 py-2 text-sm"
+        className={inputClass}
       />
       <div className="flex gap-2">
         <button
           type="submit"
           disabled={pending}
-          className="rounded-md bg-black px-3 py-1.5 text-sm text-white disabled:opacity-50"
+          className="rounded-lg bg-[#2563EB] px-3 py-1.5 text-sm text-white transition-colors hover:bg-[#1D4ED8] disabled:opacity-50"
         >
           {pending ? "제출 중..." : "재입력 제출"}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="rounded-md border px-3 py-1.5 text-sm"
+          className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600"
         >
           취소
         </button>

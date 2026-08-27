@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import StatusBadge from "@/components/StatusBadge";
-import DecisionForm from "@/components/DecisionForm";
+import StatTile from "@/components/StatTile";
+import DeliveryRow, { ROW_GRID } from "@/components/DeliveryRow";
 import { findConflictingIds } from "@/lib/conflicts";
 import type { Delivery } from "@/lib/types";
 
@@ -53,61 +53,76 @@ export default async function AssemblyPage({
 
   const companyMap = new Map((deliveryCompanies ?? []).map((c) => [c.id, c.company_name]));
   const bufferMinutes = myProfile?.conflict_buffer_minutes ?? 15;
-  const conflicts = findConflictingIds((deliveries ?? []) as Delivery[], bufferMinutes);
+  const rows = (deliveries ?? []) as Delivery[];
+  const conflicts = findConflictingIds(rows, bufferMinutes);
+
+  const counts = {
+    total: rows.length,
+    pending: rows.filter((d) => d.status === "pending").length,
+    approved: rows.filter((d) => d.status === "approved").length,
+    rejected: rows.filter((d) => d.status === "rejected").length,
+  };
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-5">
       <div className="flex items-center justify-between">
-        <Link href={`/assembly?date=${addDays(day, -1)}`} className="rounded-md border px-3 py-1 text-sm">
+        <Link
+          href={`/assembly?date=${addDays(day, -1)}`}
+          className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600"
+        >
           ◀ 이전
         </Link>
         <div className="text-center">
-          <p className="font-semibold">{day}</p>
-          <p className="text-xs text-gray-500">겹침 기준 {bufferMinutes}분</p>
+          <p className="font-semibold text-slate-800">{day}</p>
+          <p className="text-xs text-slate-400">겹침 기준 {bufferMinutes}분</p>
         </div>
-        <Link href={`/assembly?date=${addDays(day, 1)}`} className="rounded-md border px-3 py-1 text-sm">
+        <Link
+          href={`/assembly?date=${addDays(day, 1)}`}
+          className="rounded-lg border border-slate-200 px-3 py-1.5 text-sm text-slate-600"
+        >
           다음 ▶
         </Link>
       </div>
 
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <StatTile label="총 예약" value={counts.total} />
+        <StatTile label="대기중" value={counts.pending} accent="amber" />
+        <StatTile label="승인됨" value={counts.approved} accent="green" />
+        <StatTile label="반려됨" value={counts.rejected} accent="red" />
+      </div>
+
       {conflicts.size > 0 && (
-        <p className="rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">
           ⚠️ {conflicts.size}건이 다른 예약과 {bufferMinutes}분 이내로 겹칩니다.
         </p>
       )}
 
-      <div className="flex flex-col gap-3">
-        {(deliveries ?? []).length === 0 && (
-          <p className="text-sm text-gray-500">이 날짜에 등록된 예약이 없습니다.</p>
-        )}
-        {(deliveries as Delivery[] | null)?.map((d) => (
-          <div
-            key={d.id}
-            className={`rounded-lg border bg-white p-4 shadow-sm ${
-              conflicts.has(d.id) ? "border-amber-400 bg-amber-50" : ""
-            }`}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <p className="font-medium">
-                {companyMap.get(d.delivery_company_id) ?? "알 수 없음"}
-              </p>
-              <StatusBadge status={d.status} />
-            </div>
-            <p className="mt-1 text-sm text-gray-600">
-              {new Date(d.requested_at).toLocaleString("ko-KR")}
-            </p>
-            {d.note && <p className="mt-1 text-sm text-gray-500">{d.note}</p>}
-            {conflicts.has(d.id) && (
-              <p className="mt-1 text-xs font-medium text-amber-700">
-                다른 예약과 시간이 겹칩니다
-              </p>
-            )}
+      <div className="rounded-xl border border-slate-100 bg-white px-3 shadow-[0_1px_2px_rgb(0,0,0,0.04)] md:px-4">
+        <div
+          className={`hidden border-b border-slate-100 py-2 text-xs font-medium text-slate-400 md:grid md:items-center ${ROW_GRID}`}
+        >
+          <span>시간</span>
+          <span>납품사</span>
+          <span>LOT</span>
+          <span>W/O</span>
+          <span>상태</span>
+          <span className="text-right">액션</span>
+        </div>
 
-            {d.status === "pending" && <DecisionForm deliveryId={d.id} />}
-            {d.status === "rejected" && d.reject_reason && (
-              <p className="mt-2 text-sm text-gray-500">반려 사유: {d.reject_reason}</p>
-            )}
-          </div>
+        {rows.length === 0 && (
+          <p className="py-6 text-center text-sm text-slate-400">
+            이 날짜에 등록된 예약이 없습니다.
+          </p>
+        )}
+
+        {rows.map((d) => (
+          <DeliveryRow
+            key={d.id}
+            delivery={d}
+            companyName={companyMap.get(d.delivery_company_id) ?? "알 수 없음"}
+            isConflict={conflicts.has(d.id)}
+            bufferMinutes={bufferMinutes}
+          />
         ))}
       </div>
     </div>

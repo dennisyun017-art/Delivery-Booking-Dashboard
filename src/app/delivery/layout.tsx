@@ -22,7 +22,7 @@ export default async function DeliveryLayout({
   if (profile?.role !== "delivery") redirect("/assembly");
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-slate-50">
       <Nav companyName={profile.company_name} roleLabel="납품 BP사" />
       <div className="mx-auto max-w-2xl px-4 py-6">{children}</div>
     </div>

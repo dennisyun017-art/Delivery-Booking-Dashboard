@@ -49,6 +49,9 @@ create table public.deliveries (
   delivery_company_id uuid not null references public.profiles (id),
   assembly_company_id uuid not null references public.profiles (id),
   requested_at timestamptz not null,
+  lot_no text not null,
+  wo_no text not null,
+  contact_phone text,
   note text,
   status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
   reject_reason text,
@@ -119,6 +122,13 @@ begin
     raise exception 'assembly_company_id must reference an assembly company';
   end if;
 
+  if btrim(coalesce(new.lot_no, '')) = '' then
+    raise exception 'lot_no is required';
+  end if;
+  if btrim(coalesce(new.wo_no, '')) = '' then
+    raise exception 'wo_no is required';
+  end if;
+
   new.delivery_company_id := auth.uid();
   new.status := 'pending';
   new.revision := 0;
@@ -162,6 +172,9 @@ begin
   elsif acting_role = 'assembly' then
     if new.requested_at is distinct from old.requested_at
        or new.note is distinct from old.note
+       or new.lot_no is distinct from old.lot_no
+       or new.wo_no is distinct from old.wo_no
+       or new.contact_phone is distinct from old.contact_phone
        or new.delivery_company_id is distinct from old.delivery_company_id then
       raise exception 'assembly companies may only approve or reject, not edit booking details';
     end if;
