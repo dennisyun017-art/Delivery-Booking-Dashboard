@@ -4,6 +4,11 @@
 --
 -- Run this in the SQL Editor of a Supabase project that already has
 -- supabase/schema.sql applied. Safe to run once.
+--
+-- Note: the SQL Editor runs as an admin connection with no Supabase Auth
+-- session, so auth.uid() is null there. The guard trigger functions are
+-- replaced FIRST (with a null-auth.uid() bypass) so the backfill UPDATEs
+-- below don't get rejected by the old "unrecognized role" check.
 -- ============================================================================
 
 -- Existing rows have no LOT/W-O on file yet, so add the columns nullable
@@ -13,14 +18,9 @@ alter table public.deliveries add column if not exists lot_no text;
 alter table public.deliveries add column if not exists wo_no text;
 alter table public.deliveries add column if not exists contact_phone text;
 
-update public.deliveries set lot_no = '(미입력)' where lot_no is null;
-update public.deliveries set wo_no = '(미입력)' where wo_no is null;
-
-alter table public.deliveries alter column lot_no set not null;
-alter table public.deliveries alter column wo_no set not null;
-
 -- Re-create the insert/update guard triggers so they validate and protect
--- the new columns too (mirrors the current supabase/schema.sql).
+-- the new columns too, and so admin/SQL-Editor operations (no auth.uid())
+-- bypass the app-role guard instead of erroring out.
 create or replace function public.deliveries_guard_insert()
 returns trigger
 language plpgsql
@@ -31,6 +31,10 @@ declare
   acting_role text;
   target_role text;
 begin
+  if auth.uid() is null then
+    return new;
+  end if;
+
   select role into acting_role from public.profiles where id = auth.uid();
   if acting_role is distinct from 'delivery' then
     raise exception 'only delivery companies can create delivery bookings';
@@ -67,6 +71,11 @@ as $$
 declare
   acting_role text;
 begin
+  if auth.uid() is null then
+    new.updated_at := now();
+    return new;
+  end if;
+
   select role into acting_role from public.profiles where id = auth.uid();
 
   if acting_role = 'delivery' then
@@ -106,3 +115,10 @@ begin
   return new;
 end;
 $$;
+
+-- Now safe to backfill existing rows and lock the columns down.
+update public.deliveries set lot_no = '(미입력)' where lot_no is null;
+update public.deliveries set wo_no = '(미입력)' where wo_no is null;
+
+alter table public.deliveries alter column lot_no set not null;
+alter table public.deliveries alter column wo_no set not null;

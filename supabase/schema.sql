@@ -112,6 +112,12 @@ declare
   acting_role text;
   target_role text;
 begin
+  -- No authenticated user (e.g. run from the SQL Editor or another admin
+  -- connection, not through the app) — skip the app-role guard entirely.
+  if auth.uid() is null then
+    return new;
+  end if;
+
   select role into acting_role from public.profiles where id = auth.uid();
   if acting_role is distinct from 'delivery' then
     raise exception 'only delivery companies can create delivery bookings';
@@ -152,6 +158,13 @@ as $$
 declare
   acting_role text;
 begin
+  -- No authenticated user (e.g. run from the SQL Editor or another admin
+  -- connection, not through the app) — skip the app-role guard entirely.
+  if auth.uid() is null then
+    new.updated_at := now();
+    return new;
+  end if;
+
   select role into acting_role from public.profiles where id = auth.uid();
 
   if acting_role = 'delivery' then
