@@ -28,3 +28,9 @@ export interface Delivery {
   created_at: string;
   updated_at: string;
 }
+
+/** A Delivery with the delivery company's name already resolved, for
+ * passing down to client components without re-fetching profiles. */
+export interface DeliveryWithCompany extends Delivery {
+  company_name: string;
+}
