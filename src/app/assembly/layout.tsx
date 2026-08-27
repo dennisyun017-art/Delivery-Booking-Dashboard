@@ -19,7 +19,7 @@ export default async function AssemblyLayout({
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "assembly") redirect("/delivery");
+  if (profile?.role !== "assembly") redirect("/");
 
   return (
     <div className="min-h-screen bg-slate-50">

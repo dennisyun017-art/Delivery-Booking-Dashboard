@@ -7,9 +7,11 @@ export async function signup(formData: FormData) {
   const email = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "");
   const companyName = String(formData.get("company_name") || "").trim();
-  const role = String(formData.get("role") || "");
+  // Public signup is delivery-company only — assembly (and admin) accounts
+  // are provisioned by an admin via email invite. See src/app/admin.
+  const role = "delivery" as const;
 
-  if (!email || !password || !companyName || (role !== "assembly" && role !== "delivery")) {
+  if (!email || !password || !companyName) {
     redirect("/signup?error=" + encodeURIComponent("모든 항목을 입력해주세요."));
   }
 
@@ -42,5 +44,5 @@ export async function signup(formData: FormData) {
     redirect("/signup?error=" + encodeURIComponent(profileError.message));
   }
 
-  redirect(role === "assembly" ? "/assembly" : "/delivery");
+  redirect("/delivery");
 }

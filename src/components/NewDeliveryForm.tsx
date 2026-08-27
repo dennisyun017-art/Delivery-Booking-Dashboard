@@ -74,7 +74,7 @@ export default function NewDeliveryForm({
             id="new-lot"
             name="lot_no"
             required
-            placeholder="예: LOT-2026081"
+            placeholder="예: 2026101"
             className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15"
           />
         </div>
@@ -86,7 +86,7 @@ export default function NewDeliveryForm({
             id="new-wo"
             name="wo_no"
             required
-            placeholder="예: WO-10234"
+            placeholder="예: WC123456"
             className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15"
           />
         </div>

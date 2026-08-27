@@ -11,7 +11,9 @@
 create table public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   company_name text not null,
-  role text not null check (role in ('assembly', 'delivery')),
+  -- 'admin' accounts are never created through public signup — see
+  -- supabase/migrations/003_add_admin_role.sql for how to bootstrap one.
+  role text not null check (role in ('assembly', 'delivery', 'admin')),
   phone text,
   -- Only meaningful for role = 'assembly'. How close together (in minutes)
   -- two deliveries to this company have to be before the dashboard flags

@@ -14,8 +14,8 @@ export default async function SignupPage({
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-slate-800">회원가입</h1>
           <p className="mt-1.5 text-sm text-slate-500">
-            우리 회사가 어떤 역할인지 선택해주세요. 가입 후에는 바꿀 수 없으니
-            신중하게 선택해주세요.
+            납품 BP사 계정을 만듭니다. Assembly BP사 계정은 관리자가 이메일로
+            초대해드려요.
           </p>
         </div>
 
@@ -24,25 +24,6 @@ export default async function SignupPage({
         )}
 
         <form action={signup} className="flex flex-col gap-4">
-          <fieldset className="flex gap-3">
-            <label className="flex flex-1 cursor-pointer flex-col items-center gap-1 rounded-lg border border-slate-200 px-3 py-3 text-center transition has-[:checked]:border-[#2563EB] has-[:checked]:bg-blue-50 has-[:checked]:ring-4 has-[:checked]:ring-[#2563EB]/15">
-              <input
-                type="radio"
-                name="role"
-                value="delivery"
-                defaultChecked
-                className="sr-only"
-              />
-              <span className="text-sm font-medium text-slate-800">납품 BP사</span>
-              <span className="text-xs text-slate-500">납품 시간 등록</span>
-            </label>
-            <label className="flex flex-1 cursor-pointer flex-col items-center gap-1 rounded-lg border border-slate-200 px-3 py-3 text-center transition has-[:checked]:border-[#2563EB] has-[:checked]:bg-blue-50 has-[:checked]:ring-4 has-[:checked]:ring-[#2563EB]/15">
-              <input type="radio" name="role" value="assembly" className="sr-only" />
-              <span className="text-sm font-medium text-slate-800">Assembly BP사</span>
-              <span className="text-xs text-slate-500">납품 시간 확정</span>
-            </label>
-          </fieldset>
-
           <div className="flex flex-col gap-1.5">
             <label htmlFor="company_name" className="text-xs font-medium text-slate-600">
               회사명

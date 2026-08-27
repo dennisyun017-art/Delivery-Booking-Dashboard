@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import Nav from "@/components/Nav";
 
-export default async function DeliveryLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -19,12 +19,12 @@ export default async function DeliveryLayout({
     .eq("id", user.id)
     .single();
 
-  if (profile?.role !== "delivery") redirect("/");
+  if (profile?.role !== "admin") redirect("/");
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Nav companyName={profile.company_name} roleLabel="납품 BP사" />
-      <div className="mx-auto max-w-2xl px-4 py-6">{children}</div>
+      <Nav companyName={profile.company_name} roleLabel="관리자" maxWidthClassName="max-w-5xl" />
+      <div className="mx-auto max-w-5xl px-4 py-6">{children}</div>
     </div>
   );
 }

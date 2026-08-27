@@ -1,7 +1,11 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/signup"];
+// /set-password must stay public: an invite link lands here with no
+// session cookie yet — the Supabase browser client establishes the
+// session client-side from the URL fragment on load, which this
+// server-side check can't see.
+const PUBLIC_PATHS = ["/login", "/signup", "/set-password"];
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });

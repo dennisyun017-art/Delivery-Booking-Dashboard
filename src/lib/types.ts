@@ -1,4 +1,4 @@
-export type Role = "assembly" | "delivery";
+export type Role = "assembly" | "delivery" | "admin";
 
 export type DeliveryStatus = "pending" | "approved" | "rejected";
 
