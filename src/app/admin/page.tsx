@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import InviteAssemblyForm from "@/components/InviteAssemblyForm";
+import DeleteAssemblyCompanyButton from "@/components/DeleteAssemblyCompanyButton";
 
 export default async function AdminPage() {
   const supabase = await createClient();
@@ -38,6 +39,7 @@ export default async function AdminPage() {
                 <th className="px-3 py-2.5 font-medium">회사명</th>
                 <th className="px-3 py-2.5 font-medium">이메일</th>
                 <th className="px-3 py-2.5 font-medium">상태</th>
+                <th className="px-3 py-2.5 text-right font-medium">관리</th>
               </tr>
             </thead>
             <tbody>
@@ -55,6 +57,9 @@ export default async function AdminPage() {
                         초대 대기중
                       </span>
                     )}
+                  </td>
+                  <td className="px-3 py-2.5 text-right">
+                    <DeleteAssemblyCompanyButton id={r.id} companyName={r.company_name} />
                   </td>
                 </tr>
               ))}

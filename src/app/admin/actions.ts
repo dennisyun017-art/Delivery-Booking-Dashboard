@@ -29,6 +29,22 @@ async function requireAdmin() {
   if (profile?.role !== "admin") throw new Error("관리자만 사용할 수 있습니다.");
 }
 
+/**
+ * Supabase admin calls occasionally throw a raw exception instead of
+ * returning `{ error }` (e.g. when the configured SMTP provider itself
+ * fails). Left uncaught, Next.js redacts that in production down to a
+ * generic "Minified React error #441" with no useful message. Wrapping
+ * every admin-API call through this turns it into a normal thrown Error
+ * with a real message, which Server Actions do pass through to the client.
+ */
+async function callAdminApi<T>(fn: () => Promise<T>, fallbackMessage: string): Promise<T> {
+  try {
+    return await fn();
+  } catch (err) {
+    throw new Error(err instanceof Error ? err.message : fallbackMessage);
+  }
+}
+
 export async function inviteAssemblyCompany(formData: FormData) {
   await requireAdmin();
 
@@ -42,13 +58,22 @@ export async function inviteAssemblyCompany(formData: FormData) {
   const admin = createAdminClient();
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 
-  const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
-    redirectTo: `${siteUrl}/set-password`,
-    data: { company_name: companyName },
-  });
+  const { data, error } = await callAdminApi(
+    () =>
+      admin.auth.admin.inviteUserByEmail(email, {
+        redirectTo: `${siteUrl}/set-password`,
+        data: { company_name: companyName },
+      }),
+    "초대 이메일 발송 중 오류가 발생했습니다.",
+  );
 
   if (error || !data.user) {
-    throw new Error(error?.message || "초대 이메일 발송에 실패했습니다.");
+    const message = error?.message ?? "초대 이메일 발송에 실패했습니다.";
+    throw new Error(
+      /already.*registered|already.*exists/i.test(message)
+        ? "이미 등록된 이메일입니다. 아래 목록에서 기존 항목을 삭제한 뒤 다시 초대해주세요."
+        : message,
+    );
   }
 
   const { error: profileError } = await admin.from("profiles").insert({
@@ -82,14 +107,23 @@ export async function createAssemblyCompanyDirect(
   const admin = createAdminClient();
   const tempPassword = generateTempPassword();
 
-  const { data, error } = await admin.auth.admin.createUser({
-    email,
-    password: tempPassword,
-    email_confirm: true, // no verification email — the temp password IS the credential
-  });
+  const { data, error } = await callAdminApi(
+    () =>
+      admin.auth.admin.createUser({
+        email,
+        password: tempPassword,
+        email_confirm: true, // no verification email — the temp password IS the credential
+      }),
+    "계정 생성 중 오류가 발생했습니다.",
+  );
 
   if (error || !data.user) {
-    throw new Error(error?.message || "계정 생성에 실패했습니다.");
+    const message = error?.message ?? "계정 생성에 실패했습니다.";
+    throw new Error(
+      /already.*registered|already.*exists/i.test(message)
+        ? "이미 등록된 이메일입니다. 아래 목록에서 기존 항목을 삭제한 뒤 다시 만들어주세요."
+        : message,
+    );
   }
 
   const { error: profileError } = await admin.from("profiles").insert({
@@ -104,4 +138,31 @@ export async function createAssemblyCompanyDirect(
 
   revalidatePath("/admin");
   return { tempPassword };
+}
+
+/** Deletes an assembly company's account entirely (auth user + profile row,
+ * which cascades). Fails on purpose if the company already has delivery
+ * records — those would otherwise be orphaned. */
+export async function deleteAssemblyCompany(formData: FormData) {
+  await requireAdmin();
+
+  const id = String(formData.get("id") || "");
+  if (!id) throw new Error("잘못된 요청입니다.");
+
+  const admin = createAdminClient();
+
+  const { error } = await callAdminApi(
+    () => admin.auth.admin.deleteUser(id),
+    "삭제 중 오류가 발생했습니다.",
+  );
+
+  if (error) {
+    throw new Error(
+      /foreign key|violates/i.test(error.message)
+        ? "이 회사와 연결된 납품 예약 기록이 있어 삭제할 수 없습니다."
+        : error.message,
+    );
+  }
+
+  revalidatePath("/admin");
 }
