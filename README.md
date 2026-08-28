@@ -33,7 +33,9 @@ npm install
    - [`supabase/schema.sql`](supabase/schema.sql)
    - [`supabase/migrations/002_add_lot_wo_contact.sql`](supabase/migrations/002_add_lot_wo_contact.sql)
    - [`supabase/migrations/003_add_admin_role.sql`](supabase/migrations/003_add_admin_role.sql)
-     (새 프로젝트라면 schema.sql에 이미 반영되어 있어 002, 003은 생략 가능)
+   - [`supabase/migrations/004_unique_company_names.sql`](supabase/migrations/004_unique_company_names.sql)
+   - [`supabase/migrations/005_add_business_desc.sql`](supabase/migrations/005_add_business_desc.sql)
+     (새 프로젝트라면 schema.sql에 이미 반영되어 있어 002~005는 생략 가능)
 3. **Authentication > Sign In / Providers**에서 **User Signups > "Confirm email" 옵션을 꺼주세요.**
    이 프로젝트는 내부 협력사용 도구라 회원가입 직후 바로 로그인 세션을 만들어
    회사 정보를 저장하는 방식이라, 이메일 인증을 켜두면 가입 흐름이 끊깁니다.
