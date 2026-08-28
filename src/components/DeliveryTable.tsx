@@ -10,11 +10,13 @@ export default function DeliveryTable({
   bufferMinutes,
   showSearch = true,
   emptyLabel = "등록된 예약이 없습니다.",
+  readOnly = false,
 }: {
   rows: DeliveryWithCompany[];
   bufferMinutes: number;
   showSearch?: boolean;
   emptyLabel?: string;
+  readOnly?: boolean;
 }) {
   const [query, setQuery] = useState("");
 
@@ -65,6 +67,7 @@ export default function DeliveryTable({
                 delivery={d}
                 isConflict={conflicts.has(d.id)}
                 bufferMinutes={bufferMinutes}
+                readOnly={readOnly}
               />
             ))}
           </tbody>

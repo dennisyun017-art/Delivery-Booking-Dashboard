@@ -9,10 +9,12 @@ export default function DeliveryTableRow({
   delivery,
   isConflict,
   bufferMinutes,
+  readOnly = false,
 }: {
   delivery: DeliveryWithCompany;
   isConflict: boolean;
   bufferMinutes: number;
+  readOnly?: boolean;
 }) {
   const [rejecting, setRejecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -72,7 +74,10 @@ export default function DeliveryTableRow({
         <td className="px-3 py-3">
           <div className="flex flex-wrap items-center justify-end gap-2">
             {error && <p className="w-full text-right text-xs text-red-600">{error}</p>}
-            {delivery.status === "pending" && !rejecting && (
+            {readOnly && delivery.status === "pending" && (
+              <span className="text-xs text-slate-400">대기중</span>
+            )}
+            {!readOnly && delivery.status === "pending" && !rejecting && (
               <>
                 <button
                   onClick={runApprove}

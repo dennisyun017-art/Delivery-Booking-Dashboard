@@ -14,6 +14,7 @@ export default function AssemblyDashboardClient({
   bufferMinutes,
   prevHref,
   nextHref,
+  readOnly = false,
 }: {
   deliveries: DeliveryWithCompany[];
   calendarDates: string[];
@@ -21,6 +22,9 @@ export default function AssemblyDashboardClient({
   bufferMinutes: number;
   prevHref: string;
   nextHref: string;
+  /** Admin's cross-company view: same screen, no approve/reject/settings
+   * actions — this is someone else's booking queue, not the viewer's own. */
+  readOnly?: boolean;
 }) {
   const [rawSelectedDate, setSelectedDate] = useState(today);
 
@@ -101,6 +105,7 @@ export default function AssemblyDashboardClient({
           rows={selectedRows}
           bufferMinutes={bufferMinutes}
           emptyLabel="이 날짜에 등록된 예약이 없습니다."
+          readOnly={readOnly}
         />
       </div>
     </div>

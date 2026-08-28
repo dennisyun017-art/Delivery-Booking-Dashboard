@@ -4,6 +4,7 @@ import EditableCompanyName from "@/components/EditableCompanyName";
 import ResetPasswordButton from "@/components/ResetPasswordButton";
 
 type SizeParam = "50" | "100" | "200" | "all";
+type RoleTab = "assembly" | "delivery";
 
 function parseSize(raw: string | undefined): SizeParam {
   return raw === "100" || raw === "200" || raw === "all" ? raw : "50";
@@ -12,6 +13,10 @@ function parseSize(raw: string | undefined): SizeParam {
 function parsePage(raw: string | undefined): number {
   const n = Number(raw);
   return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 1;
+}
+
+function parseTab(raw: string | undefined): RoleTab {
+  return raw === "delivery" ? "delivery" : "assembly";
 }
 
 type CompanyRow = {
@@ -23,9 +28,17 @@ type CompanyRow = {
   email: string;
 };
 
+async function countByRole(admin: ReturnType<typeof createAdminClient>, role: RoleTab): Promise<number> {
+  const { count } = await admin
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .eq("role", role);
+  return count ?? 0;
+}
+
 async function fetchCompanies(
   admin: ReturnType<typeof createAdminClient>,
-  role: "assembly" | "delivery",
+  role: RoleTab,
   page: number,
   size: SizeParam,
 ): Promise<{ rows: CompanyRow[]; total: number }> {
@@ -43,6 +56,9 @@ async function fetchCompanies(
 
   const { data, count } = await query;
 
+  // Emails live in auth.users, not profiles — this is a per-row admin API
+  // call, so it only ever runs for the currently active tab/page, not for
+  // the whole roster (that could be dozens of delivery companies).
   const rows = await Promise.all(
     (data ?? []).map(async (p) => {
       const { data: userData } = await admin.auth.admin.getUserById(p.id);
@@ -53,7 +69,7 @@ async function fetchCompanies(
   return { rows, total: count ?? 0 };
 }
 
-function CompanyTable({ rows }: { rows: CompanyRow[] }) {
+function CompanyTable({ rows, viewHrefBase }: { rows: CompanyRow[]; viewHrefBase?: string }) {
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-100 bg-white shadow-[0_1px_2px_rgb(0,0,0,0.04)]">
       <table className="w-full min-w-[820px] border-collapse text-left">
@@ -80,7 +96,17 @@ function CompanyTable({ rows }: { rows: CompanyRow[] }) {
                 {new Date(r.created_at).toLocaleDateString("ko-KR")}
               </td>
               <td className="px-3 py-2.5">
-                <ResetPasswordButton id={r.id} companyName={r.company_name} />
+                <div className="flex flex-col items-end gap-1.5">
+                  {viewHrefBase && (
+                    <Link
+                      href={`${viewHrefBase}/${r.id}`}
+                      className="text-xs font-medium text-[#2563EB] no-underline hover:underline"
+                    >
+                      화면 보기
+                    </Link>
+                  )}
+                  <ResetPasswordButton id={r.id} companyName={r.company_name} />
+                </div>
               </td>
             </tr>
           ))}
@@ -163,25 +189,42 @@ export default async function AdminCompaniesPage({
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const sp = await searchParams;
+  const tab = parseTab(sp.tab);
   const aPage = parsePage(sp.aPage);
   const aSize = parseSize(sp.aSize);
   const dPage = parsePage(sp.dPage);
   const dSize = parseSize(sp.dSize);
 
   // The admin/layout.tsx guard already confirms the caller is an admin;
-  // listing every company (not just the caller's own row) needs the
+  // listing companies (not just the caller's own row) needs the
   // service-role client to bypass RLS regardless.
   const admin = createAdminClient();
-  const [assembly, delivery] = await Promise.all([
-    fetchCompanies(admin, "assembly", aPage, aSize),
-    fetchCompanies(admin, "delivery", dPage, dSize),
+
+  // Both counts are needed for the tab labels regardless of which tab is
+  // active, but the expensive part (fetching each row's email via a
+  // per-row admin API call) only runs for the active tab — 납품 BP사 could
+  // grow into the dozens, so there's no reason to pay that cost for a tab
+  // that isn't even being shown.
+  const [assemblyCount, deliveryCount] = await Promise.all([
+    countByRole(admin, "assembly"),
+    countByRole(admin, "delivery"),
   ]);
+
+  const activePage = tab === "assembly" ? aPage : dPage;
+  const activeSize = tab === "assembly" ? aSize : dSize;
+  const { rows, total } = await fetchCompanies(admin, tab, activePage, activeSize);
 
   const allParams = new URLSearchParams();
   for (const [k, v] of Object.entries(sp)) if (v) allParams.set(k, v);
 
+  const tabHref = (t: RoleTab) => {
+    const params = new URLSearchParams(allParams);
+    params.set("tab", t);
+    return `/admin/companies?${params.toString()}`;
+  };
+
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-5">
       <div>
         <h2 className="text-lg font-semibold text-slate-800">회사 목록</h2>
         <p className="mt-1 text-sm text-slate-500">
@@ -189,20 +232,36 @@ export default async function AdminCompaniesPage({
         </p>
       </div>
 
-      <section className="flex flex-col gap-3">
-        <h3 className="text-sm font-semibold text-slate-700">
-          Assembly BP사 <span className="font-normal text-slate-400">({assembly.total})</span>
-        </h3>
-        <CompanyTable rows={assembly.rows} />
-        <Pagination prefix="a" page={aPage} size={aSize} total={assembly.total} otherParams={allParams} />
-      </section>
+      <div className="flex gap-2 border-b border-slate-100">
+        {(
+          [
+            ["assembly", "Assembly BP사", assemblyCount],
+            ["delivery", "납품 BP사", deliveryCount],
+          ] as const
+        ).map(([t, label, count]) => (
+          <Link
+            key={t}
+            href={tabHref(t)}
+            className={`-mb-px border-b-2 px-3 py-2 text-sm font-medium no-underline ${
+              tab === t
+                ? "border-[#2563EB] text-[#2563EB]"
+                : "border-transparent text-slate-500 hover:text-slate-700"
+            }`}
+          >
+            {label} ({count})
+          </Link>
+        ))}
+      </div>
 
       <section className="flex flex-col gap-3">
-        <h3 className="text-sm font-semibold text-slate-700">
-          납품 BP사 <span className="font-normal text-slate-400">({delivery.total})</span>
-        </h3>
-        <CompanyTable rows={delivery.rows} />
-        <Pagination prefix="d" page={dPage} size={dSize} total={delivery.total} otherParams={allParams} />
+        <CompanyTable rows={rows} viewHrefBase={tab === "assembly" ? "/admin/assembly" : undefined} />
+        <Pagination
+          prefix={tab === "assembly" ? "a" : "d"}
+          page={activePage}
+          size={activeSize}
+          total={total}
+          otherParams={allParams}
+        />
       </section>
     </div>
   );
