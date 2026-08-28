@@ -23,7 +23,15 @@ export default async function AdminLayout({
 
   return (
     <div className="min-h-screen bg-slate-50">
-      <Nav companyName={profile.company_name} roleLabel="관리자" maxWidthClassName="max-w-5xl" />
+      <Nav
+        companyName={profile.company_name}
+        roleLabel="관리자"
+        maxWidthClassName="max-w-5xl"
+        links={[
+          { href: "/admin", label: "초대" },
+          { href: "/admin/companies", label: "회사 목록" },
+        ]}
+      />
       <div className="mx-auto max-w-5xl px-4 py-6">{children}</div>
     </div>
   );

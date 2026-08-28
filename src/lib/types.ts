@@ -7,6 +7,7 @@ export interface Profile {
   company_name: string;
   role: Role;
   phone: string | null;
+  business_desc: string | null;
   conflict_buffer_minutes: number;
   created_at: string;
 }

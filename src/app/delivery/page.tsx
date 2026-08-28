@@ -13,7 +13,7 @@ export default async function DeliveryPage() {
   const [{ data: assemblyCompanies }, { data: deliveries }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, company_name")
+      .select("id, company_name, business_desc")
       .eq("role", "assembly")
       .order("company_name"),
     supabase

@@ -2,11 +2,14 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export async function signup(formData: FormData) {
   const email = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "");
   const companyName = String(formData.get("company_name") || "").trim();
+  const phone = String(formData.get("phone") || "").trim() || null;
+  const businessDesc = String(formData.get("business_desc") || "").trim() || null;
   // Public signup is delivery-company only — assembly (and admin) accounts
   // are provisioned by an admin via email invite. See src/app/admin.
   const role = "delivery" as const;
@@ -38,10 +41,22 @@ export async function signup(formData: FormData) {
     id: data.user!.id,
     company_name: companyName,
     role,
+    phone,
+    business_desc: businessDesc,
   });
 
   if (profileError) {
-    redirect("/signup?error=" + encodeURIComponent(profileError.message));
+    // Clean up the just-created auth user so the email isn't stuck
+    // "already registered" on a retry — most likely to happen now via the
+    // company_name_key unique constraint (duplicate/near-duplicate name).
+    const admin = createAdminClient();
+    await admin.auth.admin.deleteUser(data.user!.id);
+
+    const message =
+      profileError.code === "23505"
+        ? "이미 등록된 회사명과 겹칩니다(띄어쓰기·(주) 표기 차이 포함). 다른 이름을 사용해주세요."
+        : profileError.message;
+    redirect("/signup?error=" + encodeURIComponent(message));
   }
 
   redirect("/delivery");

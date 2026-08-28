@@ -11,16 +11,28 @@
 create table public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   company_name text not null,
+  -- Normalized form of company_name (whitespace collapsed, "(주)"/"㈜"/
+  -- "주식회사" stripped, lowercased) with a unique index below, so
+  -- "현대모비스" / "현대 모비스" / "현대모비스(주)" can't coexist as
+  -- separate, confusable rows.
+  company_name_key text generated always as (
+    lower(regexp_replace(regexp_replace(company_name, '\(주\)|㈜|주식회사', '', 'g'), '\s+', '', 'g'))
+  ) stored,
   -- 'admin' accounts are never created through public signup — see
   -- supabase/migrations/003_add_admin_role.sql for how to bootstrap one.
   role text not null check (role in ('assembly', 'delivery', 'admin')),
   phone text,
+  -- Optional free-text business type, e.g. "가공", "판금" — shown next to
+  -- the company name so the other side knows at a glance what it does.
+  business_desc text,
   -- Only meaningful for role = 'assembly'. How close together (in minutes)
   -- two deliveries to this company have to be before the dashboard flags
   -- them as a scheduling conflict. Each assembly company can tune its own.
   conflict_buffer_minutes int not null default 15,
   created_at timestamptz not null default now()
 );
+
+create unique index profiles_company_name_key_idx on public.profiles (company_name_key);
 
 alter table public.profiles enable row level security;
 

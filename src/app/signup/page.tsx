@@ -38,6 +38,18 @@ export default async function SignupPage({
           </div>
 
           <div className="flex flex-col gap-1.5">
+            <label htmlFor="business_desc" className="text-xs font-medium text-slate-600">
+              업종/설명 <span className="font-normal text-slate-400">(선택)</span>
+            </label>
+            <input
+              id="business_desc"
+              name="business_desc"
+              placeholder="예: 가공, 판금"
+              className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
             <label htmlFor="email" className="text-xs font-medium text-slate-600">
               이메일
             </label>
@@ -47,6 +59,19 @@ export default async function SignupPage({
               type="email"
               required
               placeholder="example@company.com"
+              className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15"
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label htmlFor="phone" className="text-xs font-medium text-slate-600">
+              연락처 <span className="font-normal text-slate-400">(선택)</span>
+            </label>
+            <input
+              id="phone"
+              name="phone"
+              type="tel"
+              placeholder="예: 010-1234-5678"
               className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15"
             />
           </div>

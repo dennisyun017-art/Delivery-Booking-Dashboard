@@ -6,7 +6,7 @@ import { createDelivery } from "@/app/delivery/actions";
 export default function NewDeliveryForm({
   assemblyCompanies,
 }: {
-  assemblyCompanies: { id: string; company_name: string }[];
+  assemblyCompanies: { id: string; company_name: string; business_desc: string | null }[];
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +47,7 @@ export default function NewDeliveryForm({
           {assemblyCompanies.map((c) => (
             <option key={c.id} value={c.id}>
               {c.company_name}
+              {c.business_desc ? ` (${c.business_desc})` : ""}
             </option>
           ))}
         </select>

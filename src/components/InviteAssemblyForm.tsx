@@ -6,6 +6,8 @@ import { createAssemblyCompanyDirect, inviteAssemblyCompany } from "@/app/admin/
 export default function InviteAssemblyForm() {
   const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [businessDesc, setBusinessDesc] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [inviteSuccess, setInviteSuccess] = useState(false);
   const [created, setCreated] = useState<{ email: string; tempPassword: string } | null>(null);
@@ -15,7 +17,16 @@ export default function InviteAssemblyForm() {
     const fd = new FormData();
     fd.set("company_name", companyName.trim());
     fd.set("email", email.trim());
+    fd.set("phone", phone.trim());
+    fd.set("business_desc", businessDesc.trim());
     return fd;
+  };
+
+  const resetFields = () => {
+    setCompanyName("");
+    setEmail("");
+    setPhone("");
+    setBusinessDesc("");
   };
 
   const resetMessages = () => {
@@ -34,8 +45,7 @@ export default function InviteAssemblyForm() {
       try {
         await inviteAssemblyCompany(buildFormData());
         setInviteSuccess(true);
-        setCompanyName("");
-        setEmail("");
+        resetFields();
       } catch (e) {
         setError(e instanceof Error ? e.message : "초대에 실패했습니다.");
       }
@@ -53,8 +63,7 @@ export default function InviteAssemblyForm() {
       try {
         const result = await createAssemblyCompanyDirect(buildFormData());
         setCreated({ email: emailForResult, tempPassword: result.tempPassword });
-        setCompanyName("");
-        setEmail("");
+        resetFields();
       } catch (e) {
         setError(e instanceof Error ? e.message : "계정 생성에 실패했습니다.");
       }
@@ -95,6 +104,19 @@ export default function InviteAssemblyForm() {
       </div>
 
       <div className="flex flex-col gap-1.5">
+        <label htmlFor="invite-business-desc" className="text-xs font-medium text-slate-600">
+          업종/설명 <span className="font-normal text-slate-400">(선택)</span>
+        </label>
+        <input
+          id="invite-business-desc"
+          value={businessDesc}
+          onChange={(e) => setBusinessDesc(e.target.value)}
+          placeholder="예: 가공, 판금"
+          className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
         <label htmlFor="invite-email" className="text-xs font-medium text-slate-600">
           이메일
         </label>
@@ -104,6 +126,20 @@ export default function InviteAssemblyForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           placeholder="example@company.com"
+          className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="invite-phone" className="text-xs font-medium text-slate-600">
+          연락처 <span className="font-normal text-slate-400">(선택)</span>
+        </label>
+        <input
+          id="invite-phone"
+          type="tel"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          placeholder="예: 010-1234-5678"
           className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15"
         />
       </div>

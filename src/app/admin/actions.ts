@@ -45,11 +45,21 @@ async function callAdminApi<T>(fn: () => Promise<T>, fallbackMessage: string): P
   }
 }
 
+/** Postgres unique_violation on profiles.company_name_key → a friendly
+ * message instead of the raw constraint error. */
+function friendlyProfileError(error: { code?: string; message: string }): string {
+  return error.code === "23505"
+    ? "이미 등록된 회사명과 겹칩니다(띄어쓰기·(주) 표기 차이 포함). 다른 이름을 사용해주세요."
+    : error.message;
+}
+
 export async function inviteAssemblyCompany(formData: FormData) {
   await requireAdmin();
 
   const companyName = String(formData.get("company_name") || "").trim();
   const email = String(formData.get("email") || "").trim();
+  const phone = String(formData.get("phone") || "").trim() || null;
+  const businessDesc = String(formData.get("business_desc") || "").trim() || null;
   if (!companyName || !email) throw new Error("회사명과 이메일을 입력해주세요.");
 
   // Privileged client — inviteUserByEmail and writing another company's
@@ -80,10 +90,15 @@ export async function inviteAssemblyCompany(formData: FormData) {
     id: data.user.id,
     company_name: companyName,
     role: "assembly",
+    phone,
+    business_desc: businessDesc,
   });
 
   if (profileError) {
-    throw new Error(profileError.message);
+    // Don't leave a profile-less auth user behind (e.g. blocks re-inviting
+    // this email later with "already registered").
+    await admin.auth.admin.deleteUser(data.user.id);
+    throw new Error(friendlyProfileError(profileError));
   }
 
   revalidatePath("/admin");
@@ -102,6 +117,8 @@ export async function createAssemblyCompanyDirect(
 
   const companyName = String(formData.get("company_name") || "").trim();
   const email = String(formData.get("email") || "").trim();
+  const phone = String(formData.get("phone") || "").trim() || null;
+  const businessDesc = String(formData.get("business_desc") || "").trim() || null;
   if (!companyName || !email) throw new Error("회사명과 이메일을 입력해주세요.");
 
   const admin = createAdminClient();
@@ -130,10 +147,13 @@ export async function createAssemblyCompanyDirect(
     id: data.user.id,
     company_name: companyName,
     role: "assembly",
+    phone,
+    business_desc: businessDesc,
   });
 
   if (profileError) {
-    throw new Error(profileError.message);
+    await admin.auth.admin.deleteUser(data.user.id);
+    throw new Error(friendlyProfileError(profileError));
   }
 
   revalidatePath("/admin");
@@ -165,4 +185,24 @@ export async function deleteAssemblyCompany(formData: FormData) {
   }
 
   revalidatePath("/admin");
+}
+
+/** Renames any company (assembly or delivery) — for fixing typos or
+ * near-duplicate names (e.g. "현대모비스" vs "현대 모비스") from one
+ * overview screen instead of hunting through signups. */
+export async function updateCompanyName(formData: FormData) {
+  await requireAdmin();
+
+  const id = String(formData.get("id") || "");
+  const companyName = String(formData.get("company_name") || "").trim();
+  if (!id || !companyName) throw new Error("회사명을 입력해주세요.");
+
+  const admin = createAdminClient();
+  const { error } = await admin.from("profiles").update({ company_name: companyName }).eq("id", id);
+
+  if (error) {
+    throw new Error(friendlyProfileError(error));
+  }
+
+  revalidatePath("/admin/companies");
 }
