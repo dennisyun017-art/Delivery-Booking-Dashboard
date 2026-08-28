@@ -1,8 +1,18 @@
 "use server";
 
+import { randomBytes } from "crypto";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+
+// Excludes visually ambiguous characters (0/O, 1/l/I) since this is meant
+// to be read aloud or typed from a phone/KakaoTalk message.
+const TEMP_PASSWORD_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+
+function generateTempPassword(length = 10): string {
+  const bytes = randomBytes(length);
+  return Array.from(bytes, (b) => TEMP_PASSWORD_CHARS[b % TEMP_PASSWORD_CHARS.length]).join("");
+}
 
 async function requireAdmin() {
   const supabase = await createClient();
@@ -52,4 +62,46 @@ export async function inviteAssemblyCompany(formData: FormData) {
   }
 
   revalidatePath("/admin");
+}
+
+/**
+ * Creates the assembly company's account immediately with a generated
+ * temporary password, instead of sending an invite email. The admin is
+ * responsible for relaying company/email/password to the company out of
+ * band (phone, KakaoTalk, etc.) — nothing is emailed.
+ */
+export async function createAssemblyCompanyDirect(
+  formData: FormData,
+): Promise<{ tempPassword: string }> {
+  await requireAdmin();
+
+  const companyName = String(formData.get("company_name") || "").trim();
+  const email = String(formData.get("email") || "").trim();
+  if (!companyName || !email) throw new Error("회사명과 이메일을 입력해주세요.");
+
+  const admin = createAdminClient();
+  const tempPassword = generateTempPassword();
+
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    password: tempPassword,
+    email_confirm: true, // no verification email — the temp password IS the credential
+  });
+
+  if (error || !data.user) {
+    throw new Error(error?.message || "계정 생성에 실패했습니다.");
+  }
+
+  const { error: profileError } = await admin.from("profiles").insert({
+    id: data.user.id,
+    company_name: companyName,
+    role: "assembly",
+  });
+
+  if (profileError) {
+    throw new Error(profileError.message);
+  }
+
+  revalidatePath("/admin");
+  return { tempPassword };
 }
