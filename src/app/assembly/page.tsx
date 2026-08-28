@@ -1,11 +1,20 @@
 import { createClient } from "@/lib/supabase/server";
 import AssemblyDashboardClient from "@/components/AssemblyDashboardClient";
-import { buildThreeWeekGrid, dateOnly } from "@/lib/date";
+import { addDays, buildThreeWeekGrid, dateOnly } from "@/lib/date";
 import type { Delivery, DeliveryWithCompany } from "@/lib/types";
 
-export default async function AssemblyPage() {
+export default async function AssemblyPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ center?: string }>;
+}) {
   const today = dateOnly(new Date());
-  const calendarDates = buildThreeWeekGrid(today);
+  const { center } = await searchParams;
+  // The 3-week grid can be scrolled a week at a time via ?center=, but the
+  // "오늘"/highlight logic below always refers to the real `today`, not
+  // whichever window is currently on screen.
+  const gridCenter = center || today;
+  const calendarDates = buildThreeWeekGrid(gridCenter);
   const rangeStart = new Date(calendarDates[0] + "T00:00:00").toISOString();
   const rangeEnd = new Date(calendarDates[calendarDates.length - 1] + "T23:59:59.999").toISOString();
 
@@ -41,6 +50,8 @@ export default async function AssemblyPage() {
       calendarDates={calendarDates}
       today={today}
       bufferMinutes={bufferMinutes}
+      prevHref={`/assembly?center=${addDays(gridCenter, -7)}`}
+      nextHref={`/assembly?center=${addDays(gridCenter, 7)}`}
     />
   );
 }

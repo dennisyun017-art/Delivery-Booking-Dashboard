@@ -67,6 +67,10 @@ create table public.deliveries (
   wo_no text not null,
   contact_phone text,
   note text,
+  -- Simple ask from the delivery company to the assembly company (e.g.
+  -- "지게차 준비 부탁드립니다") — distinct from `note`, shown as its own
+  -- column so it doesn't get lost in general remarks.
+  request_note text,
   status text not null default 'pending' check (status in ('pending', 'approved', 'rejected')),
   reject_reason text,
   revision int not null default 0,
@@ -199,6 +203,7 @@ begin
   elsif acting_role = 'assembly' then
     if new.requested_at is distinct from old.requested_at
        or new.note is distinct from old.note
+       or new.request_note is distinct from old.request_note
        or new.lot_no is distinct from old.lot_no
        or new.wo_no is distinct from old.wo_no
        or new.contact_phone is distinct from old.contact_phone
@@ -223,3 +228,40 @@ $$;
 create trigger deliveries_guard_update_trigger
   before update on public.deliveries
   for each row execute function public.deliveries_guard_update();
+
+-- ----------------------------------------------------------------------------
+-- feedback: 문의/오류 신고. Uploads and admin replies always go through the
+-- service-role client server-side (see src/app/feedback/actions.ts and
+-- src/app/admin/feedback-actions.ts), so there's no "admin can update"
+-- policy or storage.objects policies here.
+-- ----------------------------------------------------------------------------
+create table public.feedback (
+  id uuid primary key default gen_random_uuid(),
+  reporter_id uuid not null references public.profiles (id) on delete cascade,
+  message text not null,
+  image_path text,
+  status text not null default 'open' check (status in ('open', 'answered', 'resolved')),
+  admin_reply text,
+  replied_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.feedback enable row level security;
+
+create index feedback_reporter_idx on public.feedback (reporter_id, created_at desc);
+
+create policy "reporters can view their own feedback"
+  on public.feedback for select
+  to authenticated
+  using (reporter_id = auth.uid());
+
+create policy "authenticated users can file feedback"
+  on public.feedback for insert
+  to authenticated
+  with check (reporter_id = auth.uid());
+
+-- Private bucket for attached screenshots/photos.
+insert into storage.buckets (id, name, public)
+values ('feedback', 'feedback', false)
+on conflict (id) do nothing;

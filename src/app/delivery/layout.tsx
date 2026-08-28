@@ -27,7 +27,10 @@ export default async function DeliveryLayout({
         companyName={profile.company_name}
         roleLabel="납품 BP사"
         adminEmail={adminEmail}
-        links={[{ href: "/feedback", label: "문의하기" }]}
+        links={[
+          { href: "/account", label: "비밀번호 변경" },
+          { href: "/feedback", label: "문의하기" },
+        ]}
       />
       <div className="mx-auto max-w-2xl px-4 py-6">{children}</div>
     </div>

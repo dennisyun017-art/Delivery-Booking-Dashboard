@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import EditableCompanyName from "@/components/EditableCompanyName";
+import ResetPasswordButton from "@/components/ResetPasswordButton";
 
 type SizeParam = "50" | "100" | "200" | "all";
 
@@ -55,7 +56,7 @@ async function fetchCompanies(
 function CompanyTable({ rows }: { rows: CompanyRow[] }) {
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-100 bg-white shadow-[0_1px_2px_rgb(0,0,0,0.04)]">
-      <table className="w-full min-w-[640px] border-collapse text-left">
+      <table className="w-full min-w-[820px] border-collapse text-left">
         <thead>
           <tr className="border-b border-slate-100 text-xs font-medium text-slate-400">
             <th className="px-3 py-2.5 font-medium">회사명</th>
@@ -63,6 +64,7 @@ function CompanyTable({ rows }: { rows: CompanyRow[] }) {
             <th className="px-3 py-2.5 font-medium">이메일</th>
             <th className="px-3 py-2.5 font-medium">연락처</th>
             <th className="px-3 py-2.5 font-medium">가입일</th>
+            <th className="px-3 py-2.5 text-right font-medium">관리</th>
           </tr>
         </thead>
         <tbody>
@@ -76,6 +78,9 @@ function CompanyTable({ rows }: { rows: CompanyRow[] }) {
               <td className="px-3 py-2.5 text-sm text-slate-600">{r.phone || "-"}</td>
               <td className="px-3 py-2.5 text-sm text-slate-400">
                 {new Date(r.created_at).toLocaleDateString("ko-KR")}
+              </td>
+              <td className="px-3 py-2.5">
+                <ResetPasswordButton id={r.id} companyName={r.company_name} />
               </td>
             </tr>
           ))}

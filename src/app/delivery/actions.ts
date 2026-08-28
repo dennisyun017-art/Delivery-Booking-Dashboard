@@ -18,6 +18,7 @@ export async function createDelivery(formData: FormData) {
   const woNo = String(formData.get("wo_no") || "").trim();
   const contactPhone = String(formData.get("contact_phone") || "").trim() || null;
   const note = String(formData.get("note") || "").trim() || null;
+  const requestNote = String(formData.get("request_note") || "").trim() || null;
 
   if (!assemblyCompanyId || !requestedAt || !lotNo || !woNo) {
     throw new Error("assembly 회사, 도착 예정 시간, LOT, W/O를 입력해주세요.");
@@ -32,6 +33,7 @@ export async function createDelivery(formData: FormData) {
       wo_no: woNo,
       contact_phone: contactPhone,
       note,
+      request_note: requestNote,
     })
     .select()
     .single();
@@ -76,6 +78,7 @@ export async function resubmitDelivery(formData: FormData) {
   const woNo = String(formData.get("wo_no") || "").trim();
   const contactPhone = String(formData.get("contact_phone") || "").trim() || null;
   const note = String(formData.get("note") || "").trim() || null;
+  const requestNote = String(formData.get("request_note") || "").trim() || null;
 
   if (!id || !requestedAt || !lotNo || !woNo) {
     throw new Error("도착 예정 시간, LOT, W/O를 입력해주세요.");
@@ -89,6 +92,7 @@ export async function resubmitDelivery(formData: FormData) {
       wo_no: woNo,
       contact_phone: contactPhone,
       note,
+      request_note: requestNote,
     })
     .eq("id", id);
 

@@ -40,3 +40,20 @@ export function formatKoreanDate(dateStr: string): string {
   const d = new Date(dateStr + "T00:00:00");
   return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${weekdayLabel(dateStr)})`;
 }
+
+/** Heading for a calendar grid spanning `dates` — "2026년 8월" if it stays
+ * within one month, "2026년 8월 - 9월" or "2025년 12월 - 2026년 1월" if it
+ * crosses a month/year boundary. */
+export function formatYearMonthRange(dates: string[]): string {
+  const first = new Date(dates[0] + "T00:00:00");
+  const last = new Date(dates[dates.length - 1] + "T00:00:00");
+  const firstLabel = `${first.getFullYear()}년 ${first.getMonth() + 1}월`;
+  if (first.getFullYear() === last.getFullYear() && first.getMonth() === last.getMonth()) {
+    return firstLabel;
+  }
+  const lastLabel =
+    first.getFullYear() === last.getFullYear()
+      ? `${last.getMonth() + 1}월`
+      : `${last.getFullYear()}년 ${last.getMonth() + 1}월`;
+  return `${firstLabel} - ${lastLabel}`;
+}

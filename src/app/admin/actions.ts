@@ -206,3 +206,27 @@ export async function updateCompanyName(formData: FormData) {
 
   revalidatePath("/admin/companies");
 }
+
+/** Resets any company's (assembly or delivery) password to a freshly
+ * generated one — for when a company forgets theirs. The admin relays the
+ * new password out of band (phone, KakaoTalk); it's shown once and never
+ * stored or logged in the clear. */
+export async function resetCompanyPassword(formData: FormData): Promise<{ tempPassword: string }> {
+  await requireAdmin();
+
+  const id = String(formData.get("id") || "");
+  if (!id) throw new Error("잘못된 요청입니다.");
+
+  const admin = createAdminClient();
+  const tempPassword = generateTempPassword();
+
+  const { error } = await callAdminApi(
+    () => admin.auth.admin.updateUserById(id, { password: tempPassword }),
+    "비밀번호 초기화 중 오류가 발생했습니다.",
+  );
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/companies");
+  return { tempPassword };
+}

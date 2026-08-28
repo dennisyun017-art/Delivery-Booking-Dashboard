@@ -66,6 +66,11 @@ export default async function DeliveryPage() {
                 )}
               </div>
               {d.note && <p className="mt-2 text-sm text-slate-500">{d.note}</p>}
+              {d.request_note && (
+                <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-700">
+                  요청 사항: {d.request_note}
+                </p>
+              )}
 
               {d.status === "rejected" && (
                 <div className="mt-3 rounded-lg bg-red-50 p-3">

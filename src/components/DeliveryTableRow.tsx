@@ -31,9 +31,7 @@ export default function DeliveryTableRow({
     });
   };
 
-  const subtext = [delivery.note, delivery.contact_phone ? `☎ ${delivery.contact_phone}` : null]
-    .filter(Boolean)
-    .join(" · ");
+  const subtext = delivery.note ?? "";
 
   return (
     <>
@@ -58,8 +56,16 @@ export default function DeliveryTableRow({
           <p className="truncate text-sm font-medium text-slate-800">{delivery.company_name}</p>
           {subtext && <p className="truncate text-xs text-slate-400">{subtext}</p>}
         </td>
+        <td className="px-3 py-3 text-sm text-slate-600">{delivery.contact_phone || "-"}</td>
         <td className="px-3 py-3 text-sm text-slate-600">{delivery.lot_no}</td>
         <td className="px-3 py-3 text-sm text-slate-600">{delivery.wo_no}</td>
+        <td className="max-w-[180px] px-3 py-3 text-sm text-amber-700">
+          {delivery.request_note && (
+            <span className="truncate" title={delivery.request_note}>
+              {delivery.request_note}
+            </span>
+          )}
+        </td>
         <td className="px-3 py-3">
           <StatusBadge status={delivery.status} />
         </td>
@@ -98,7 +104,7 @@ export default function DeliveryTableRow({
 
       {rejecting && (
         <tr className="border-b border-slate-100 last:border-0">
-          <td colSpan={6} className="bg-slate-50 px-3 py-3">
+          <td colSpan={8} className="bg-slate-50 px-3 py-3">
             <form
               action={(formData) => {
                 setError(null);

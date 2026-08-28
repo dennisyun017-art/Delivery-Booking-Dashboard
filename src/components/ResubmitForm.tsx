@@ -84,6 +84,12 @@ export default function ResubmitForm({ delivery }: { delivery: Delivery }) {
         placeholder="비고"
         className={inputClass}
       />
+      <input
+        name="request_note"
+        defaultValue={delivery.request_note ?? ""}
+        placeholder="요청 사항 (선택)"
+        className={inputClass}
+      />
       <div className="flex gap-2">
         <button
           type="submit"

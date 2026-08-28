@@ -118,6 +118,18 @@ export default function NewDeliveryForm({
         />
       </div>
 
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="new-request-note" className="text-xs font-medium text-slate-600">
+          요청 사항 <span className="font-normal text-slate-400">(선택)</span>
+        </label>
+        <input
+          id="new-request-note"
+          name="request_note"
+          placeholder="예: 지게차 준비 부탁드립니다"
+          className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15"
+        />
+      </div>
+
       <button
         type="submit"
         disabled={pending}

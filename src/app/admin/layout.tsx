@@ -41,6 +41,7 @@ export default async function AdminLayout({
             href: "/admin/feedback",
             label: openFeedbackCount ? `문의 관리 (${openFeedbackCount})` : "문의 관리",
           },
+          { href: "/account", label: "비밀번호 변경" },
         ]}
       />
       <div className="mx-auto max-w-5xl px-4 py-6">{children}</div>

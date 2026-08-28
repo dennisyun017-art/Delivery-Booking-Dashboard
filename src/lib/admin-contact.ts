@@ -11,6 +11,7 @@ export async function getAdminContactEmail(): Promise<string | null> {
     .from("profiles")
     .select("id")
     .eq("role", "admin")
+    .order("created_at", { ascending: true })
     .limit(1)
     .maybeSingle();
 

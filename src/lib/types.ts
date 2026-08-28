@@ -21,6 +21,7 @@ export interface Delivery {
   wo_no: string;
   contact_phone: string | null;
   note: string | null;
+  request_note: string | null;
   status: DeliveryStatus;
   reject_reason: string | null;
   revision: number;
