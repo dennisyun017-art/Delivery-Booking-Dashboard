@@ -13,17 +13,34 @@ export function addDays(dateStr: string, n: number) {
   return dateOnly(d);
 }
 
+/** Shifts to the 1st of the month `n` months away from `dateStr`. Only the
+ * year/month of the result matters to callers (it's used as a grid center),
+ * so anchoring to day 1 sidesteps day-overflow issues (e.g. Aug 31 + 1
+ * month rolling into October instead of September). */
+export function addMonths(dateStr: string, n: number): string {
+  const d = new Date(dateStr + "T00:00:00");
+  return dateOnly(new Date(d.getFullYear(), d.getMonth() + n, 1));
+}
+
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
 /**
- * A 3-week (21 day), Sunday-start calendar grid centered on `today`'s week
- * (previous week, this week, next week).
+ * A Sunday-start calendar grid covering the full month that `centerDate`
+ * falls in, padded with the leading/trailing days of the adjacent months
+ * needed to fill out whole weeks (the usual month-calendar look).
  */
-export function buildThreeWeekGrid(today: string): string[] {
-  const d = new Date(today + "T00:00:00");
-  const dayOfWeek = d.getDay(); // 0 = Sunday
-  const gridStart = addDays(today, -dayOfWeek - 7);
-  return Array.from({ length: 21 }, (_, i) => addDays(gridStart, i));
+export function buildMonthGrid(centerDate: string): string[] {
+  const d = new Date(centerDate + "T00:00:00");
+  const firstOfMonth = dateOnly(new Date(d.getFullYear(), d.getMonth(), 1));
+  const lastOfMonth = dateOnly(new Date(d.getFullYear(), d.getMonth() + 1, 0));
+  const gridStart = addDays(firstOfMonth, -new Date(firstOfMonth + "T00:00:00").getDay());
+  const gridEnd = addDays(lastOfMonth, 6 - new Date(lastOfMonth + "T00:00:00").getDay());
+
+  const dates: string[] = [];
+  for (let cur = gridStart; cur <= gridEnd; cur = addDays(cur, 1)) {
+    dates.push(cur);
+  }
+  return dates;
 }
 
 export function weekdayLabel(dateStr: string): string {
@@ -41,19 +58,9 @@ export function formatKoreanDate(dateStr: string): string {
   return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일 (${weekdayLabel(dateStr)})`;
 }
 
-/** Heading for a calendar grid spanning `dates` — "2026년 8월" if it stays
- * within one month, "2026년 8월 - 9월" or "2025년 12월 - 2026년 1월" if it
- * crosses a month/year boundary. */
-export function formatYearMonthRange(dates: string[]): string {
-  const first = new Date(dates[0] + "T00:00:00");
-  const last = new Date(dates[dates.length - 1] + "T00:00:00");
-  const firstLabel = `${first.getFullYear()}년 ${first.getMonth() + 1}월`;
-  if (first.getFullYear() === last.getFullYear() && first.getMonth() === last.getMonth()) {
-    return firstLabel;
-  }
-  const lastLabel =
-    first.getFullYear() === last.getFullYear()
-      ? `${last.getMonth() + 1}월`
-      : `${last.getFullYear()}년 ${last.getMonth() + 1}월`;
-  return `${firstLabel} - ${lastLabel}`;
+/** Heading for a month-grid view — "2026년 8월", regardless of the leading/
+ * trailing days from adjacent months that pad the grid out to whole weeks. */
+export function formatMonthLabel(centerDate: string): string {
+  const d = new Date(centerDate + "T00:00:00");
+  return `${d.getFullYear()}년 ${d.getMonth() + 1}월`;
 }

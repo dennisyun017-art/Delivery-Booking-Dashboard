@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { formatMonthDay, formatYearMonthRange } from "@/lib/date";
+import { formatMonthDay, formatMonthLabel } from "@/lib/date";
 
 const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -18,6 +18,7 @@ export default function HeatmapCalendar({
   today,
   selectedDate,
   onSelect,
+  focusMonth,
   prevHref,
   nextHref,
 }: {
@@ -26,9 +27,14 @@ export default function HeatmapCalendar({
   today: string;
   selectedDate: string;
   onSelect: (date: string) => void;
+  /** Any date within the month this grid is centered on — days outside
+   * that month (the leading/trailing padding) render dimmed. */
+  focusMonth: string;
   prevHref: string;
   nextHref: string;
 }) {
+  const focusYearMonth = focusMonth.slice(0, 7);
+
   return (
     <div className="rounded-xl border border-slate-100 bg-white p-3 shadow-[0_1px_2px_rgb(0,0,0,0.04)] md:p-4">
       <div className="mb-2 flex items-center justify-between">
@@ -36,14 +42,14 @@ export default function HeatmapCalendar({
           href={prevHref}
           className="rounded-md border border-slate-200 px-2 py-1 text-xs text-slate-600 no-underline hover:bg-slate-50"
         >
-          ◀ 이전주
+          ◀ 이전달
         </Link>
-        <p className="text-sm font-medium text-slate-700">{formatYearMonthRange(dates)}</p>
+        <p className="text-sm font-medium text-slate-700">{formatMonthLabel(focusMonth)}</p>
         <Link
           href={nextHref}
           className="rounded-md border border-slate-200 px-2 py-1 text-xs text-slate-600 no-underline hover:bg-slate-50"
         >
-          다음주 ▶
+          다음달 ▶
         </Link>
       </div>
 
@@ -57,6 +63,7 @@ export default function HeatmapCalendar({
           const count = countsByDate[date] ?? 0;
           const isToday = date === today;
           const isSelected = date === selectedDate;
+          const isOtherMonth = date.slice(0, 7) !== focusYearMonth;
           return (
             <button
               key={date}
@@ -66,7 +73,7 @@ export default function HeatmapCalendar({
                 count,
               )} ${isToday ? "ring-2 ring-[#2563EB] ring-offset-1" : ""} ${
                 isSelected && !isToday ? "border-slate-500" : ""
-              }`}
+              } ${isOtherMonth ? "opacity-40" : ""}`}
             >
               <span className={isToday ? "font-bold" : "font-medium"}>{formatMonthDay(date)}</span>
               <span className="text-[10px]">{count > 0 ? `${count}건` : "-"}</span>

@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { buildThreeWeekGrid, dateOnly } from "@/lib/date";
+import { buildMonthGrid, dateOnly } from "@/lib/date";
 import type { Delivery, DeliveryWithCompany } from "@/lib/types";
 
 /**
@@ -21,7 +21,7 @@ export async function loadAssemblyDashboardData(
 ) {
   const today = dateOnly(new Date());
   const gridCenter = center || today;
-  const calendarDates = buildThreeWeekGrid(gridCenter);
+  const calendarDates = buildMonthGrid(gridCenter);
   const rangeStart = new Date(calendarDates[0] + "T00:00:00").toISOString();
   const rangeEnd = new Date(calendarDates[calendarDates.length - 1] + "T23:59:59.999").toISOString();
 

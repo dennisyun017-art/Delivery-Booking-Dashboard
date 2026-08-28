@@ -12,6 +12,7 @@ export default function AssemblyDashboardClient({
   calendarDates,
   today,
   bufferMinutes,
+  focusMonth,
   prevHref,
   nextHref,
   readOnly = false,
@@ -20,6 +21,9 @@ export default function AssemblyDashboardClient({
   calendarDates: string[];
   today: string;
   bufferMinutes: number;
+  /** Any date within the month the calendar grid is centered on — used to
+   * dim the leading/trailing days borrowed from adjacent months. */
+  focusMonth: string;
   prevHref: string;
   nextHref: string;
   /** Admin's cross-company view: same screen, no approve/reject/settings
@@ -75,6 +79,7 @@ export default function AssemblyDashboardClient({
         today={today}
         selectedDate={selectedDate}
         onSelect={setSelectedDate}
+        focusMonth={focusMonth}
         prevHref={prevHref}
         nextHref={nextHref}
       />

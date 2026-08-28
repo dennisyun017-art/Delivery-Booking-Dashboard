@@ -1,6 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadAssemblyDashboardData } from "@/lib/assembly-dashboard-data";
-import { addDays } from "@/lib/date";
+import { addMonths } from "@/lib/date";
 import AssemblyDashboardClient from "@/components/AssemblyDashboardClient";
 import AssemblyCompanySwitcher from "@/components/AssemblyCompanySwitcher";
 
@@ -46,8 +46,9 @@ export default async function AdminAssemblyViewPage({
         calendarDates={calendarDates}
         today={today}
         bufferMinutes={bufferMinutes}
-        prevHref={`/admin/assembly/${id}?center=${addDays(gridCenter, -7)}`}
-        nextHref={`/admin/assembly/${id}?center=${addDays(gridCenter, 7)}`}
+        focusMonth={gridCenter}
+        prevHref={`/admin/assembly/${id}?center=${addMonths(gridCenter, -1)}`}
+        nextHref={`/admin/assembly/${id}?center=${addMonths(gridCenter, 1)}`}
         readOnly
       />
     </div>

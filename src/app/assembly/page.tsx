@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import AssemblyDashboardClient from "@/components/AssemblyDashboardClient";
 import { loadAssemblyDashboardData } from "@/lib/assembly-dashboard-data";
-import { addDays } from "@/lib/date";
+import { addMonths } from "@/lib/date";
 
 export default async function AssemblyPage({
   searchParams,
@@ -27,8 +27,9 @@ export default async function AssemblyPage({
       calendarDates={calendarDates}
       today={today}
       bufferMinutes={bufferMinutes}
-      prevHref={`/assembly?center=${addDays(gridCenter, -7)}`}
-      nextHref={`/assembly?center=${addDays(gridCenter, 7)}`}
+      focusMonth={gridCenter}
+      prevHref={`/assembly?center=${addMonths(gridCenter, -1)}`}
+      nextHref={`/assembly?center=${addMonths(gridCenter, 1)}`}
     />
   );
 }
