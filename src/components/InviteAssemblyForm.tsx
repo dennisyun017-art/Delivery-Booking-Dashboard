@@ -2,12 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { createAssemblyCompanyDirect, inviteAssemblyCompany } from "@/app/admin/actions";
+import { useCompanySimilarityWarning } from "@/hooks/useCompanySimilarityWarning";
 
 export default function InviteAssemblyForm() {
   const [companyName, setCompanyName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [businessDesc, setBusinessDesc] = useState("");
+  const similarTo = useCompanySimilarityWarning(companyName);
   const [error, setError] = useState<string | null>(null);
   const [inviteSuccess, setInviteSuccess] = useState(false);
   const [created, setCreated] = useState<{ email: string; tempPassword: string } | null>(null);
@@ -101,6 +103,12 @@ export default function InviteAssemblyForm() {
           placeholder="예: 현대모비스"
           className="rounded-lg border border-slate-200 px-3 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15"
         />
+        {similarTo && (
+          <p className="rounded-md bg-amber-50 px-2.5 py-1.5 text-xs text-amber-700">
+            혹시 이미 등록된 <span className="font-medium">&ldquo;{similarTo}&rdquo;</span>와 같은
+            회사인가요? 다른 회사라면 무시하고 진행하세요.
+          </p>
+        )}
       </div>
 
       <div className="flex flex-col gap-1.5">
