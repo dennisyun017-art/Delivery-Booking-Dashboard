@@ -35,3 +35,17 @@ export interface Delivery {
 export interface DeliveryWithCompany extends Delivery {
   company_name: string;
 }
+
+export type FeedbackStatus = "open" | "answered" | "resolved";
+
+export interface Feedback {
+  id: string;
+  reporter_id: string;
+  message: string;
+  image_path: string | null;
+  status: FeedbackStatus;
+  admin_reply: string | null;
+  replied_at: string | null;
+  created_at: string;
+  updated_at: string;
+}

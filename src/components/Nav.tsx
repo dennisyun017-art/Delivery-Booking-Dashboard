@@ -5,11 +5,15 @@ export default function Nav({
   companyName,
   roleLabel,
   links,
+  adminEmail,
   maxWidthClassName = "max-w-2xl",
 }: {
   companyName: string;
   roleLabel: string;
   links?: { href: string; label: string }[];
+  /** Shown as a mailto contact line — the operator's email, so every
+   * partner company knows who to reach for errors/questions. */
+  adminEmail?: string | null;
   maxWidthClassName?: string;
 }) {
   return (
@@ -19,21 +23,31 @@ export default function Nav({
           <p className="text-xs text-slate-400">{roleLabel}</p>
           <p className="font-semibold text-slate-800">{companyName}</p>
         </div>
-        <div className="flex items-center gap-4">
-          {links?.map((l) => (
-            <Link
-              key={l.href}
-              href={l.href}
-              className="text-sm text-slate-500 no-underline hover:underline"
+        <div className="flex flex-col items-end gap-1">
+          <div className="flex items-center gap-4">
+            {links?.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className="text-sm text-slate-500 no-underline hover:underline"
+              >
+                {l.label}
+              </Link>
+            ))}
+            <form action={logout}>
+              <button type="submit" className="text-sm text-slate-400 no-underline hover:underline">
+                로그아웃
+              </button>
+            </form>
+          </div>
+          {adminEmail && (
+            <a
+              href={`mailto:${adminEmail}`}
+              className="text-xs text-slate-400 no-underline hover:underline"
             >
-              {l.label}
-            </Link>
-          ))}
-          <form action={logout}>
-            <button type="submit" className="text-sm text-slate-400 no-underline hover:underline">
-              로그아웃
-            </button>
-          </form>
+              문의: {adminEmail}
+            </a>
+          )}
         </div>
       </div>
     </header>
