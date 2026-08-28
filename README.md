@@ -10,6 +10,12 @@ Assembly BP사와 납품 BP사 사이의 납품 예정 시간을 조율하는 �
 - **확정**: assembly BP사가 승인 또는 반려(사유 포함) → 반려 시 납품 BP사가 재입력
 - **충돌 표시**: 같은 날 같은 assembly사 앞으로 예약이 몰릴 경우, 설정한 분(기본 15분) 이내로 겹치면 화면에 강조 표시. assembly BP사별로 `/assembly/settings`에서 기준 분을 직접 조정 가능
 - **알림**: 새 예약 등록 시 assembly BP사에게, 승인/반려 처리 시 납품 BP사에게 이메일 발송 (Resend)
+- **문의/오류 신고**: 모든 협력사 화면 상단에 관리자 이메일 표시 + `/feedback`에서 문의
+  내용과 스크린샷/사진을 남길 수 있음. 관리자는 `/admin/feedback`에서 전체 문의를 보고
+  답변/상태(대기중·답변완료·해결됨)를 관리
+- **회사 관리**: 관리자가 `/admin/companies`에서 assembly/납품 BP사를 구분해서 조회,
+  회사명 수정, 페이지네이션(50/100/200/전체) 지원. 회사명은 공백·"(주)" 표기 차이까지
+  정규화해 중복 등록을 막고, 비슷한 이름 입력 시 경고 표시
 
 ## 기술 스택
 
@@ -35,7 +41,9 @@ npm install
    - [`supabase/migrations/003_add_admin_role.sql`](supabase/migrations/003_add_admin_role.sql)
    - [`supabase/migrations/004_unique_company_names.sql`](supabase/migrations/004_unique_company_names.sql)
    - [`supabase/migrations/005_add_business_desc.sql`](supabase/migrations/005_add_business_desc.sql)
-     (새 프로젝트라면 schema.sql에 이미 반영되어 있어 002~005는 생략 가능)
+   - [`supabase/migrations/006_add_feedback.sql`](supabase/migrations/006_add_feedback.sql)
+     (새 프로젝트라면 schema.sql에 이미 반영되어 있어 002~006는 생략 가능. 006은 문의
+     첨부파일용 Storage 버킷도 같이 만듭니다)
 3. **Authentication > Sign In / Providers**에서 **User Signups > "Confirm email" 옵션을 꺼주세요.**
    이 프로젝트는 내부 협력사용 도구라 회원가입 직후 바로 로그인 세션을 만들어
    회사 정보를 저장하는 방식이라, 이메일 인증을 켜두면 가입 흐름이 끊깁니다.
