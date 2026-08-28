@@ -41,7 +41,16 @@ npm install
    - `http://localhost:3000/set-password` (로컬 개발용, 포트가 다르면 맞게)
    - `https://내프로젝트.vercel.app/set-password` (배포 후 실제 도메인으로)
    Assembly 회사 초대 이메일의 링크가 이 목록에 없는 주소로는 리다이렉트되지 않습니다.
-5. **Project Settings > API**에서 `Project URL`, `anon public` 키, `service_role` 키를 확인
+5. **Authentication > Emails**에서 **Invite user** 템플릿을 열어, 링크 부분을 아래처럼
+   수정 (기본 `{{ .ConfirmationURL }}` 대신):
+   ```html
+   <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=invite">계정 활성화하기</a>
+   ```
+   Gmail 등 모바일 메일 앱이 링크를 사람이 누르기 전에 미리 스캔하면서 1회용 토큰을
+   먼저 소모해버려 "링크 만료" 오류가 나는 문제 때문입니다. 이렇게 바꾸면 `/set-password`
+   화면에서 사람이 실제로 버튼을 눌러야만 토큰이 소모됩니다 (자세한 내용은
+   `src/app/set-password/page.tsx` 주석 참고).
+6. **Project Settings > API**에서 `Project URL`, `anon public` 키, `service_role` 키를 확인
 
 ### 3. 환경 변수 설정
 
